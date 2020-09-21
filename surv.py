@@ -29,6 +29,14 @@ if conf["use_dropbox"]:
 camera = PiCamera()
 camera.resolution = tuple(conf["resolution"])
 camera.framerate = conf["fps"]
+if (conf["ISO"] != "auto"):
+	camera.iso = conf["ISO"]
+if (conf["brightness"] != "auto"):
+	camera.brightness = conf["brightness"]
+if (conf["shutter_speed^-1"] != "auto"):
+	camera.shutter_speed = int(1000000 / conf["shutter_speed^-1"])
+if (conf["contrast"] != "auto"):
+	camera.contrast = conf["contrast"]
 rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
@@ -82,6 +90,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	ts = timestamp.strftime("%Y %b %-d %a %H:%M:%S")
 	cv2.putText(frame, ts, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 		0.8, (0, 0, 0), 2)
+	cv2.putText(frame, "Shutter: 1/{}".format(str(round(1000000/camera.exposure_speed))),
+		(frame.shape[1] - 250, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "Brightness: {}".format(str(camera.brightness)),
+		(frame.shape[1] - 250, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "ISO: {}".format(str(camera.iso)),
+		(frame.shape[1] - 250, frame.shape[0] - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "Contrast: {}".format(str(camera.contrast)),
+		(frame.shape[1] - 250, frame.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
+		(frame.shape[1] - 250, frame.shape[0] - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 	if dropUse:
 		cv2.putText(frame, "Upload: Enabled", (frame.shape[1] - 220, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
@@ -103,9 +121,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				if dropUse:
 					# write the image to temporary file
 					t = TempImage()
-					cv2.imwrite(t.path, frame)
-					'''
-					t = TempImage()
 					outimg = f.array
 					outscale = conf["resolution"][0]/conf["monitor_res"]
 					#(outx, outy, outw, outh) = (x*outscale, y*outscale, w*outscale, h*outscale)
@@ -121,7 +136,6 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 					cv2.putText(outimg, ts, (10, outimg.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 						1, (0, 0, 0), 2)
 					cv2.imwrite(t.path, outimg)
-					'''
 					# upload the image to Dropbox and cleanup the tempory image
 					print("[UPLOAD] {}".format(ts))
 					path = "/{base_path}/{timestamp}.jpg".format(
