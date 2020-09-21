@@ -5,10 +5,14 @@
 	"dropbox_base_path": "zjj_pi_surv",
 	"min_upload_seconds": 1.5,
 	"min_motion_frames": 12,
+	"fps": 8,
 	"camera_warmup_time": 2.5,
 	"delta_thresh": 3,
 	"resolution": [1280, 720],
-	"monitor_res": 640,
-	"fps": 8,
+	"monitor_res": 720,
+	"ISO": 1600,
+	"brightness": 55,
+	"shutter_speed^-1": 50,
+	"contrast": "auto",
 	"min_area": 400
 }
