@@ -135,6 +135,22 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 						cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 					cv2.putText(outimg, ts, (10, outimg.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 						1, (0, 0, 0), 2)
+					cv2.putText(outimg, "Shutter: 1/{}".format(str(round(1000000/camera.exposure_speed))),
+						(frame.shape[1] - 250, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "Brightness: {}".format(str(camera.brightness)),
+						(frame.shape[1] - 250, frame.shape[0] - 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "ISO: {}".format(str(camera.iso)),
+						(frame.shape[1] - 250, frame.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "Contrast: {}".format(str(camera.contrast)),
+						(frame.shape[1] - 250, frame.shape[0] - 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
+						(frame.shape[1] - 250, frame.shape[0] - 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					if dropUse:
+						cv2.putText(outimg, "Upload: Enabled", (frame.shape[1] - 220, 30),
+							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+					else:
+						cv2.putText(outimg, "Upload: DIsnabled", (frame.shape[1] - 250, 30),
+							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 					cv2.imwrite(t.path, outimg)
 					# upload the image to Dropbox and cleanup the tempory image
 					print("[UPLOAD] {}".format(ts))
