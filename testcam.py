@@ -11,10 +11,9 @@ import json
 import time
 import cv2
 
-camera = PiCamera()
-#camera.resolution = (2560, 1080)
-camera.start_preview()
-time.sleep(2)
-camera.stop_preview()
-camera.close()
+import sys
 
+cv2.imshow(sys.argv[1], cv2.imread(sys.argv[1]))
+res = cv2.waitKey(0)
+print('You pressed %d (0x%x), LSB: %d (%s)' % (res, res, res % 256,
+    repr(chr(res%256)) if res%256 < 128 else '?'))
