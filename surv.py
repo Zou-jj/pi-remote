@@ -31,6 +31,8 @@ camera.resolution = tuple(conf["resolution"])
 camera.framerate = conf["fps"]
 if (conf["ISO"] != "auto"):
 	camera.iso = conf["ISO"]
+if (conf["meter"] != "auto"):
+	camera.meter_mode = conf["meter"]
 if (conf["brightness"] != "auto"):
 	camera.brightness = conf["brightness"]
 if (conf["shutter_speed^-1"] != "auto"):
@@ -46,6 +48,7 @@ avg = None
 lastUploaded = datetime.datetime.now()
 motionCounter = 0
 dropUse = conf["use_dropbox"]
+flag = ""
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	# grab the raw NumPy array representing the image and initialize
@@ -92,20 +95,24 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		0.8, (0, 0, 0), 2)
 	cv2.putText(frame, "Shutter: 1/{}".format(str(round(1000000/camera.exposure_speed))),
 		(frame.shape[1] - 250, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-	cv2.putText(frame, "Brightness: {}".format(str(camera.brightness)),
+	cv2.putText(frame, "Meter: {}".format(str(camera.meter_mode)),
 		(frame.shape[1] - 250, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-	cv2.putText(frame, "ISO: {}".format(str(camera.iso)),
+	cv2.putText(frame, "Brightness: {}".format(str(camera.brightness)),
 		(frame.shape[1] - 250, frame.shape[0] - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-	cv2.putText(frame, "Contrast: {}".format(str(camera.contrast)),
+	cv2.putText(frame, "ISO: {}".format(str(camera.iso)),
 		(frame.shape[1] - 250, frame.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-	cv2.putText(frame, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
+	cv2.putText(frame, "Contrast: {}".format(str(camera.contrast)),
 		(frame.shape[1] - 250, frame.shape[0] - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
+		(frame.shape[1] - 250, frame.shape[0] - 110), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 	if dropUse:
-		cv2.putText(frame, "Upload: Enabled", (frame.shape[1] - 220, 30),
+		cv2.putText(frame, "Upload: Enabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 	else:
 		cv2.putText(frame, "Upload: DIsnabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+	cv2.putText(frame, "flag: {}".format(flag),
+		(frame.shape[1] - 250, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
         	# check to see if the room is occupied
 	if text == "Detected":
 		cv2.putText(frame, "Object: {}".format(text), (10, 20),
@@ -136,20 +143,22 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 					cv2.putText(outimg, ts, (10, outimg.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 						1, (0, 0, 0), 2)
 					cv2.putText(outimg, "Shutter: 1/{}".format(str(round(1000000/camera.exposure_speed))),
-						(frame.shape[1] - 250, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+						(outimg.shape[1] - 350, outimg.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "Meter: {}".format(str(camera.meter_mode)),
+						(outimg.shape[1] - 350, outimg.shape[0] - 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					cv2.putText(outimg, "Brightness: {}".format(str(camera.brightness)),
-						(frame.shape[1] - 250, frame.shape[0] - 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+						(outimg.shape[1] - 350, outimg.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					cv2.putText(outimg, "ISO: {}".format(str(camera.iso)),
-						(frame.shape[1] - 250, frame.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+						(outimg.shape[1] - 350, outimg.shape[0] - 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					cv2.putText(outimg, "Contrast: {}".format(str(camera.contrast)),
-						(frame.shape[1] - 250, frame.shape[0] - 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+						(outimg.shape[1] - 350, outimg.shape[0] - 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					cv2.putText(outimg, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
-						(frame.shape[1] - 250, frame.shape[0] - 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+						(outimg.shape[1] - 350, outimg.shape[0] - 160), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					if dropUse:
-						cv2.putText(outimg, "Upload: Enabled", (frame.shape[1] - 220, 30),
+						cv2.putText(outimg, "Upload: Enabled", (outimg.shape[1] - 300, 30),
 							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 					else:
-						cv2.putText(outimg, "Upload: DIsnabled", (frame.shape[1] - 250, 30),
+						cv2.putText(outimg, "Upload: DIsnabled", (outimg.shape[1] - 350, 30),
 							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 					cv2.imwrite(t.path, outimg)
 					# upload the image to Dropbox and cleanup the tempory image
@@ -167,11 +176,18 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		motionCounter = 0
 		cv2.putText(frame, "Object: {}".format(text), (10, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-        	# check to see if the frames should be displayed to screen
+    # check to see if the frames should be displayed to screen
 	if conf["show_video"]:
 		# display the security feed
+		'''
+		if flag != "":
+			cv2.putText(frame, "Key: {}".format(str(key)),
+				(frame.shape[1] - 400, frame.shape[0] - 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+		'''
 		cv2.imshow("Security Feed", frame)
-		key = cv2.waitKey(1) & 0xFF
+		key = cv2.waitKeyEx(5)
+		#print('You pressed %d (0x%x), 2LSB: %d (%s)' % (key, key, key % 2**16,
+			#repr(chr(key%256)) if key%256 < 128 else '?'))
 		# if the `q` key is pressed, break from the lop
 		if key == ord("q"):
 			break
@@ -179,6 +195,137 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			dropUse = False
 		elif key == ord("r"):
 			dropUse = True
+		if flag == "":
+			if key == ord("i"):
+				flag = "iso"
+			elif key == ord("s"):
+				flag = "shutter"
+			elif key == ord("b"):
+				flag = "brightness"
+		elif flag == "iso":
+			if key == 0xff52:
+				if camera.iso == 0:
+					camera.iso = 100
+				elif camera.iso == 100:
+					camera.iso = 200
+				elif camera.iso == 200:
+					camera.iso = 320
+				elif camera.iso == 320:
+					camera.iso = 400
+				elif camera.iso == 400:
+					camera.iso = 500
+				elif camera.iso == 500:
+					camera.iso = 640
+				elif camera.iso == 640:
+					camera.iso = 800
+				elif camera.iso == 800:
+					camera.iso = 1600
+			elif key == 0xff54:
+				if camera.iso == 100:
+					camera.iso = 0
+				elif camera.iso == 200:
+					camera.iso = 100
+				elif camera.iso == 320:
+					camera.iso = 200
+				elif camera.iso == 400:
+					camera.iso = 320
+				elif camera.iso == 500:
+					camera.iso = 400
+				elif camera.iso == 640:
+					camera.iso = 500
+				elif camera.iso == 800:
+					camera.iso = 640
+				elif camera.iso == 1600:
+					camera.iso = 800
+			elif key == ord("i"):
+				flag = ""
+		elif flag == "shutter":
+			'''
+			camera.shutter_speed = camera.exposure_speed
+			if camera.shutter_speed >= 50000:
+				if key == 0xff52:
+					camera.shutter_speed += 10000
+				elif key == 0xff54:
+					camera.shutter_speed -= 10000
+			elif camera.shutter_speed <= 50000 and camera.shutter_speed > 20000:
+				if key == 0xff52:
+					camera.shutter_speed += 5000
+				elif key == 0xff54:
+					camera.shutter_speed -= 5000
+			elif camera.shutter_speed <= 20000 and camera.shutter_speed > 10000:
+				if key == 0xff52:
+					camera.shutter_speed += 2000
+				elif key == 0xff54:
+					camera.shutter_speed -= 2000
+			elif camera.shutter_speed <= 10000 and camera.shutter_speed > 5000:
+				if key == 0xff52:
+					camera.shutter_speed += 1000
+				elif key == 0xff54:
+					camera.shutter_speed -= 1000
+			elif camera.shutter_speed <= 5000 and camera.shutter_speed > 2000:
+				if key == 0xff52:
+					camera.shutter_speed += 500
+				elif key == 0xff54:
+					camera.shutter_speed -= 500
+			if key == ord("s"):
+				flag = ""
+			'''
+			'''
+			if key == 0xff52:
+				if camera.shutter_speed >= 50000:
+					camera.shutter_speed += 10000
+				elif camera.shutter_speed in range(10000, 50000):
+					camera.shutter_speed += 4000
+				elif camera.shutter_speed in range(2000, 10000):
+					camera.shutter_speed += 1000
+			elif key == 0xff54:
+				if camera.shutter_speed >= 50000:
+					camera.shutter_speed -= 10000
+				elif camera.shutter_speed in range(10000, 50000):
+					camera.shutter_speed -= 4000
+				elif camera.shutter_speed in range(2000, 10000):
+					camera.shutter_speed -= 1000
+			'''
+			
+			shut_rev = int(1000000 / camera.exposure_speed)
+			if key == 0xff52:
+				if shut_rev < 10:
+					shut_rev -= 2
+				elif shut_rev in range(10, 30):
+					shut_rev -= 5
+				elif shut_rev in range(30, 100):
+					shut_rev -= 10
+				elif shut_rev in range(100, 200):
+					shut_rev -= 20
+				elif shut_rev in range(200, 500):
+					shut_rev -= 50
+				elif shut_rev in range(500, 1000):
+					shut_rev -= 100
+				camera.shutter_speed = int(1000000 / shut_rev)
+			if key == 0xff54:
+				if shut_rev < 10:
+					shut_rev += 2
+				elif shut_rev in range(10, 30):
+					shut_rev += 5
+				elif shut_rev in range(30, 100):
+					shut_rev += 10
+				elif shut_rev in range(100, 200):
+					shut_rev += 20
+				elif shut_rev in range(200, 500):
+					shut_rev += 50
+				elif shut_rev in range(500, 1000):
+					shut_rev += 100
+				camera.shutter_speed = int(1000000 / shut_rev)
+			elif key == ord("s"):
+				flag = ""
+			
+		elif flag == "brightness":
+			if key == 0xff52:
+				camera.brightness += 10
+			elif key == 0xff54:
+				camera.brightness -= 10
+			elif key == ord("b"):
+				flag = ""
 	else:
 		if input() == "q":
 			break
