@@ -105,13 +105,15 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		(frame.shape[1] - 250, frame.shape[0] - 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 	cv2.putText(frame, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
 		(frame.shape[1] - 250, frame.shape[0] - 110), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+	cv2.putText(frame, "Framerate: {}".format(str(camera.framerate)),
+		(frame.shape[1] - 250, frame.shape[0] - 130), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 	if dropUse:
 		cv2.putText(frame, "Upload: Enabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 	else:
 		cv2.putText(frame, "Upload: DIsnabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-	cv2.putText(frame, "flag: {}".format(flag),
+	cv2.putText(frame, "Control: {}".format(flag),
 		(frame.shape[1] - 250, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
         	# check to see if the room is occupied
 	if text == "Detected":
@@ -154,6 +156,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 						(outimg.shape[1] - 350, outimg.shape[0] - 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					cv2.putText(outimg, "AWB: r:{} b:{}".format(str(float(camera.awb_gains[0].__round__(2))), str(float(camera.awb_gains[1].__round__(2)))),
 						(outimg.shape[1] - 350, outimg.shape[0] - 160), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+					cv2.putText(outimg, "Framerate: {}".format(str(camera.framerate)),
+						(outimg.shape[1] - 350, outimg.shape[0] - 190), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
 					if dropUse:
 						cv2.putText(outimg, "Upload: Enabled", (outimg.shape[1] - 300, 30),
 							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -202,6 +206,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				flag = "shutter"
 			elif key == ord("b"):
 				flag = "brightness"
+			elif key == ord("f"):
+				flag = "framerate"
 		elif flag == "iso":
 			if key == 0xff52:
 				if camera.iso == 0:
@@ -321,10 +327,17 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			
 		elif flag == "brightness":
 			if key == 0xff52:
-				camera.brightness += 10
+				camera.brightness += 5
 			elif key == 0xff54:
-				camera.brightness -= 10
+				camera.brightness -= 5
 			elif key == ord("b"):
+				flag = ""
+		elif flag == "framerate":
+			if key == 0xff52:
+				camera.framerate += 1
+			elif key == 0xff54:
+				camera.framerate -= 1
+			elif key == ord("f"):
 				flag = ""
 	else:
 		if input() == "q":
