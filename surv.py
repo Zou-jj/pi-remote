@@ -9,7 +9,17 @@ import dropbox
 import imutils
 import json
 import time
+import signal
+from threading import Thread
+import os
 import cv2
+
+keyin = ""
+
+def get_input():
+	keyin = input("")
+	return
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
@@ -65,6 +75,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		print("[INFO] starting background model...")
 		avg = gray.copy().astype("float")
 		rawCapture.truncate(0)
+		print("[INFO] configure completed")
 		continue
 	# accumulate the weighted average between the current frame and
 	# previous frames, then compute the difference between the current
@@ -115,6 +126,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 	cv2.putText(frame, "Control: {}".format(flag),
 		(frame.shape[1] - 250, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+	
+	'''
+	for i in range(180, 185):
+		for j in range(360, 365):
+			gray[i, j] = 255
+			frame[i, j] = [255, 255, 255]
+	print(gray[100, 100])
+	print(frame[100, 100])
+	'''
+		
         	# check to see if the room is occupied
 	if text == "Detected":
 		cv2.putText(frame, "Object: {}".format(text), (10, 20),
@@ -175,6 +196,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				# counter
 				lastUploaded = timestamp
 				motionCounter = 0
+				
 	# otherwise, the room is not occupied
 	else:
 		motionCounter = 0
@@ -340,7 +362,30 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			elif key == ord("f"):
 				flag = ""
 	else:
-		if input() == "q":
-			break
+		
+		get_input_thread = Thread(target=get_input, args=keyin)
+		get_input_thread.daemon = True  # Otherwise the thread won't be terminated when the main program terminates.
+		get_input_thread.start()
+		get_input_thread.join(timeout=0.005)
+        
+		if keyin is "":
+			rawCapture.truncate(0)
+			continue
+		else:
+			print("hello")
+	
+	'''
+	if timestamp.hour >= 8 and timestamp.hour <= 17:
+		camera.brightness = 50
+	else:
+		camera.brightness = 60
+	'''
+	
+	if flag != "brightness":
+		camera.brightness += int((120 - gray[180, 360]) / 6)
+	
+	
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
+
+
