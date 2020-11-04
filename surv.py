@@ -24,11 +24,24 @@ def get_input():
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
 	help="path to the JSON configuration file")
+	
+ap.add_argument("-s", "--status", required=True,
+	help="path to the JSON status file")
+	
 args = vars(ap.parse_args())
 # filter warnings, load the configuration and initialize the Dropbox
 # client
 warnings.filterwarnings("ignore")
-conf = json.load(open(args["conf"]))
+
+confFile = open(args["conf"], "r")
+init = json.load(confFile)
+statusFile = open(args["status"], "r+")
+statusFile.truncate(0)
+statusFile.write(json.dumps(init, indent=4, separators=(", ", ": ")))
+statusFile.close()
+statusFile = open(args["status"], "r")
+
+conf = json.load(statusFile)
 client = None
 # check to see if the Dropbox should be used
 if conf["use_dropbox"]:
@@ -63,6 +76,9 @@ flag = ""
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	# grab the raw NumPy array representing the image and initialize
 	# the timestamp and occupied/unoccupied text
+	
+	
+	
 	frame = f.array
 	timestamp = datetime.datetime.now()
 	text = "Undetected"
@@ -135,7 +151,9 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	print(gray[100, 100])
 	print(frame[100, 100])
 	'''
-		
+
+	frame[180, 361] = [0,0,255]
+
         	# check to see if the room is occupied
 	if text == "Detected":
 		cv2.putText(frame, "Object: {}".format(text), (10, 20),
@@ -327,7 +345,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 					shut_rev -= 20
 				elif shut_rev in range(200, 500):
 					shut_rev -= 50
-				elif shut_rev in range(500, 1000):
+				elif shut_rev >= 500:
 					shut_rev -= 100
 				camera.shutter_speed = int(1000000 / shut_rev)
 			if key == 0xff54:
@@ -382,10 +400,31 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	'''
 	
 	if flag != "brightness":
-		camera.brightness += int((120 - gray[180, 360]) / 6)
+		camera.brightness += int((130 - gray[180, 360]) / 6)
 	
+	status = json.load(open(args["status"]))
+	
+	camera.awb_mode = 'auto'
+	
+	camera.framerate = status["fps"]
+	'''
+	if (conf["ISO"] != "auto"):
+		camera.iso = conf["ISO"]
+	if (conf["meter"] != "auto"):
+		camera.meter_mode = conf["meter"]
+	if (conf["brightness"] != "auto"):
+		camera.brightness = conf["brightness"]
+	if (conf["shutter_speed^-1"] != "auto"):
+		camera.shutter_speed = int(1000000 / conf["shutter_speed^-1"])
+	if (conf["contrast"] != "auto"):
+		camera.contrast = conf["contrast"]
+	dropUse = conf["use_dropbox"]
+	'''
 	
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
-
-
+	'''
+confFile.close()
+statusFile.close()
+camera.close()
+'''
