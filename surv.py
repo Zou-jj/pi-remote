@@ -77,7 +77,20 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	# grab the raw NumPy array representing the image and initialize
 	# the timestamp and occupied/unoccupied text
 	
+	status = json.load(open(args["status"]))
 	
+	if(conf!= status):
+		camera.framerate = status["fps"]
+		if (conf["meter"] != "auto"):
+			camera.meter_mode = status["meter"]
+		if (conf["brightness"] != "auto"):
+			camera.brightness = status["brightness"]
+		if (conf["shutter_speed^-1"] != "auto"):
+			camera.shutter_speed = int(1000000 / status["shutter_speed^-1"])
+		if (conf["contrast"] != "auto"):
+			camera.contrast = status["contrast"]
+		dropUse = status["use_dropbox"]
+		conf = status
 	
 	frame = f.array
 	timestamp = datetime.datetime.now()
@@ -402,29 +415,11 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	if flag != "brightness":
 		camera.brightness += int((130 - gray[180, 360]) / 6)
 	
-	status = json.load(open(args["status"]))
-	
-	camera.awb_mode = 'auto'
-	
-	camera.framerate = status["fps"]
-	'''
-	if (conf["ISO"] != "auto"):
-		camera.iso = conf["ISO"]
-	if (conf["meter"] != "auto"):
-		camera.meter_mode = conf["meter"]
-	if (conf["brightness"] != "auto"):
-		camera.brightness = conf["brightness"]
-	if (conf["shutter_speed^-1"] != "auto"):
-		camera.shutter_speed = int(1000000 / conf["shutter_speed^-1"])
-	if (conf["contrast"] != "auto"):
-		camera.contrast = conf["contrast"]
-	dropUse = conf["use_dropbox"]
-	'''
 	
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
-	'''
+
 confFile.close()
 statusFile.close()
 camera.close()
-'''
+

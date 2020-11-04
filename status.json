@@ -3,7 +3,7 @@
     "use_dropbox": true, 
     "dropbox_access_token": "2ZTOCKfdVIwAAAAAAAAAAZ2XMYPkf0XY3Jet3PscdjWlmQcLNwxfO2Nvs5buJCwy", 
     "dropbox_base_path": "zjj_pi_surv", 
-    "min_upload_seconds": 3, 
+    "min_upload_seconds": 1, 
     "min_motion_frames": 12, 
     "fps": 8, 
     "camera_warmup_time": 2, 
