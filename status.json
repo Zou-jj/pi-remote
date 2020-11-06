@@ -1,6 +1,5 @@
 {
-    "show_video": true, 
-    "use_dropbox": true, 
+    "use_dropbox": false, 
     "dropbox_access_token": "2ZTOCKfdVIwAAAAAAAAAAZ2XMYPkf0XY3Jet3PscdjWlmQcLNwxfO2Nvs5buJCwy", 
     "dropbox_base_path": "zjj_pi_surv", 
     "min_upload_seconds": 1, 
@@ -13,7 +12,7 @@
         720
     ], 
     "monitor_res": 720, 
-    "ISO": "auto", 
+    "ISO": 1600, 
     "brightness": "auto", 
     "shutter_speed^-1": 60, 
     "meter": "auto", 

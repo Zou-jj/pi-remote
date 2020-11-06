@@ -28,6 +28,9 @@ ap.add_argument("-c", "--conf", required=True,
 ap.add_argument("-s", "--status", required=True,
 	help="path to the JSON status file")
 	
+ap.add_argument("-d", "--display", nargs='?', const=1, type=int, default=1,
+	help="path to the JSON status file")
+	
 args = vars(ap.parse_args())
 # filter warnings, load the configuration and initialize the Dropbox
 # client
@@ -40,8 +43,8 @@ statusFile.truncate(0)
 statusFile.write(json.dumps(init, indent=4, separators=(", ", ": ")))
 statusFile.close()
 statusFile = open(args["status"], "r")
-
 conf = json.load(statusFile)
+
 client = None
 # check to see if the Dropbox should be used
 if conf["use_dropbox"]:
@@ -62,6 +65,7 @@ if (conf["shutter_speed^-1"] != "auto"):
 	camera.shutter_speed = int(1000000 / conf["shutter_speed^-1"])
 if (conf["contrast"] != "auto"):
 	camera.contrast = conf["contrast"]
+
 rawCapture = PiRGBArray(camera, size=tuple(conf["resolution"]))
 # allow the camera to warmup, then initialize the average frame, last
 # uploaded timestamp, and frame motion counter
@@ -72,25 +76,64 @@ lastUploaded = datetime.datetime.now()
 motionCounter = 0
 dropUse = conf["use_dropbox"]
 flag = ""
+statusChange = False
+
+status = {"use_dropbox": conf["use_dropbox"],
+	"fps": conf["fps"], 
+	"ISO": conf["ISO"]}
+
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 	# grab the raw NumPy array representing the image and initialize
 	# the timestamp and occupied/unoccupied text
 	
-	status = json.load(open(args["status"]))
+	'''
+	print(status["ISO"])
+	print(conf["ISO"])
+	print("")
+	'''
 	
-	if(conf!= status):
-		camera.framerate = status["fps"]
-		if (conf["meter"] != "auto"):
-			camera.meter_mode = status["meter"]
-		if (conf["brightness"] != "auto"):
-			camera.brightness = status["brightness"]
-		if (conf["shutter_speed^-1"] != "auto"):
-			camera.shutter_speed = int(1000000 / status["shutter_speed^-1"])
-		if (conf["contrast"] != "auto"):
-			camera.contrast = status["contrast"]
-		dropUse = status["use_dropbox"]
-		conf = status
+	if statusChange:
+		statusFile.close()
+		statusFile = open(args["status"], "r+")
+		statusFile.truncate(0)
+		if (conf["use_dropbox"] != status["use_dropbox"]):
+			conf["use_dropbox"] = status["use_dropbox"]
+			print("[INFO] upload status changed")
+		elif (conf["fps"] != status["fps"]):
+			conf["fps"] = status["fps"]
+			print("[INFO] fps status changed")
+		elif (conf["ISO"] != status["ISO"]):
+			conf["ISO"] = status["ISO"]
+			print("[INFO] ISO status changed")
+			
+			'''
+camera.framerate = conf["fps"]
+if (conf["ISO"] != "auto"):
+	camera.iso = conf["ISO"]
+if (conf["meter"] != "auto"):
+	camera.meter_mode = conf["meter"]
+if (conf["brightness"] != "auto"):
+	camera.brightness = conf["brightness"]
+if (conf["shutter_speed^-1"] != "auto"):
+	camera.shutter_speed = int(1000000 / conf["shutter_speed^-1"])
+if (conf["contrast"] != "auto"):
+	camera.contrast = conf["contrast"]
+			'''
+			
+		statusFile.write(json.dumps(conf, indent=4, separators=(", ", ": ")))
+		statusFile.close()
+		statusFile = open(args["status"], "r")
+		conf = json.load(statusFile)
+		statusChange = False
+	else:
+		newStatus = json.load(open(args["status"], "r"))
+		if (newStatus["use_dropbox"] != status["use_dropbox"]):
+			dropUse = newStatus["use_dropbox"]
+			print("[CAUTION] upload status extensually changed Externally")
+			statusFile.close()
+			statusFile = open(args["status"], "r")
+			conf = json.load(statusFile)
 	
 	frame = f.array
 	timestamp = datetime.datetime.now()
@@ -104,7 +147,12 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		print("[INFO] starting background model...")
 		avg = gray.copy().astype("float")
 		rawCapture.truncate(0)
+		if args["display"]:
+			print("[INFO] monitor display enabled...")
+		else:
+			print("[INFO] monitor display disabled...")
 		print("[INFO] configure completed")
+		print("")
 		continue
 	# accumulate the weighted average between the current frame and
 	# previous frames, then compute the difference between the current
@@ -151,7 +199,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		cv2.putText(frame, "Upload: Enabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 	else:
-		cv2.putText(frame, "Upload: DIsnabled", (frame.shape[1] - 250, 30),
+		cv2.putText(frame, "Upload: Disnabled", (frame.shape[1] - 250, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 	cv2.putText(frame, "Control: {}".format(flag),
 		(frame.shape[1] - 250, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
@@ -234,7 +282,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		cv2.putText(frame, "Object: {}".format(text), (10, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
     # check to see if the frames should be displayed to screen
-	if conf["show_video"]:
+	if args["display"]:
 		# display the security feed
 		'''
 		if flag != "":
@@ -250,8 +298,10 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 			break
 		elif key == ord("p"):
 			dropUse = False
+			statusChange = True
 		elif key == ord("r"):
 			dropUse = True
+			statusChange = True
 		if flag == "":
 			if key == ord("i"):
 				flag = "iso"
@@ -377,6 +427,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				camera.shutter_speed = int(1000000 / shut_rev)
 			elif key == ord("s"):
 				flag = ""
+				statusChange = True
 			
 		elif flag == "brightness":
 			if key == 0xff52:
@@ -385,6 +436,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				camera.brightness -= 5
 			elif key == ord("b"):
 				flag = ""
+				statusChange = True
+		
 		elif flag == "framerate":
 			if key == 0xff52:
 				camera.framerate += 1
@@ -392,6 +445,8 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 				camera.framerate -= 1
 			elif key == ord("f"):
 				flag = ""
+				statusChange = True
+	
 	else:
 		
 		get_input_thread = Thread(target=get_input, args=keyin)
@@ -405,6 +460,7 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		else:
 			print("hello")
 	
+	
 	'''
 	if timestamp.hour >= 8 and timestamp.hour <= 17:
 		camera.brightness = 50
@@ -414,8 +470,20 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 	
 	if flag != "brightness":
 		camera.brightness += int((130 - gray[180, 360]) / 6)
+		
+	status["use_dropbox"] = dropUse
+	status["fps"] = camera.framerate
+	if camera.iso != 0:
+		status["ISO"] = camera.iso
+	else:
+		status["ISO"] = "auto"
 	
-	
+	'''	
+	status["use_dropbox"] = dropUse
+	print(status["use_dropbox"])
+	print(conf["use_dropbox"])
+	print("")
+	'''
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
 
