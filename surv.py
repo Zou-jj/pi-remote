@@ -81,6 +81,9 @@ statusChange = False
 status = {"use_dropbox": conf["use_dropbox"],
 	"fps": conf["fps"], 
 	"ISO": conf["ISO"]}
+	
+frameWidth = int(tuple(conf["resolution"])[0]/4)
+frameHeight = int(tuple(conf["resolution"])[1]/4)
 
 # capture frames from the camera
 for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
@@ -106,11 +109,16 @@ for f in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True
 		elif (conf["ISO"] != status["ISO"]):
 			conf["ISO"] = status["ISO"]
 			print("[INFO] ISO status changed")
-			
 			'''
-camera.framerate = conf["fps"]
-if (conf["ISO"] != "auto"):
-	camera.iso = conf["ISO"]
+		elif (conf["brightness"] != status["brightness"]):
+			conf["brightness"] = status["brightness"]
+			print("[INFO] brightness status changed")
+			
+		elif (conf["shutter_speed^-1"] != status["shutter_speed^-1"]):
+			conf["shutter_speed^-1"] = status["shutter_speed^-1"]
+			print("[INFO] shutter speed status changed")
+			'''
+			'''
 if (conf["meter"] != "auto"):
 	camera.meter_mode = conf["meter"]
 if (conf["brightness"] != "auto"):
@@ -130,10 +138,25 @@ if (conf["contrast"] != "auto"):
 		newStatus = json.load(open(args["status"], "r"))
 		if (newStatus["use_dropbox"] != status["use_dropbox"]):
 			dropUse = newStatus["use_dropbox"]
-			print("[CAUTION] upload status extensually changed Externally")
-			statusFile.close()
-			statusFile = open(args["status"], "r")
-			conf = json.load(statusFile)
+			print("[CAUTION] upload status changed Externally")
+		elif (newStatus["fps"] != status["fps"]):
+			camera.framerate = newStatus["fps"]
+			print("[INFO] fps status changed Externally")
+		elif (newStatus["ISO"] != status["ISO"]):
+			conf["ISO"] = newStatus["ISO"]
+			print("[INFO] ISO status changed Externally")
+			'''
+		elif (newStatus["brightness"] != status["brightness"]):
+			conf["brightness"] = newStatus["brightness"]
+			print("[INFO] brightness status changed Externally")
+			
+		elif (newStatus["shutter_speed^-1"] != status["shutter_speed^-1"]):
+			conf["shutter_speed^-1"] = newStatus["shutter_speed^-1"]
+			print("[INFO] shutter speed status changed Externally")
+			'''
+		statusFile.close()
+		statusFile = open(args["status"], "r")
+		conf = json.load(statusFile)
 	
 	frame = f.array
 	timestamp = datetime.datetime.now()
@@ -213,7 +236,11 @@ if (conf["contrast"] != "auto"):
 	print(frame[100, 100])
 	'''
 
-	frame[180, 361] = [0,0,255]
+	frame[frameHeight-1, frameWidth] = [0,0,255]
+	frame[frameHeight, frameWidth-1] = [0,0,255]
+	frame[frameHeight, frameWidth] = [0,0,255]
+	frame[frameHeight, frameWidth+1] = [0,0,255]
+	frame[frameHeight+1, frameWidth] = [0,0,255]
 
         	# check to see if the room is occupied
 	if text == "Detected":
@@ -469,7 +496,7 @@ if (conf["contrast"] != "auto"):
 	'''
 	
 	if flag != "brightness":
-		camera.brightness += int((130 - gray[180, 360]) / 6)
+		camera.brightness += int((130 - gray[frameHeight, frameWidth]) / 6)
 		
 	status["use_dropbox"] = dropUse
 	status["fps"] = camera.framerate
@@ -477,12 +504,25 @@ if (conf["contrast"] != "auto"):
 		status["ISO"] = camera.iso
 	else:
 		status["ISO"] = "auto"
+	# status["brightness"] = camera.brightness
+	status["shutter_speed^-1"] = (round(1000000/camera.exposure_speed))
 	
 	'''	
-	status["use_dropbox"] = dropUse
-	print(status["use_dropbox"])
-	print(conf["use_dropbox"])
-	print("")
+	if (conf["use_dropbox"] != status["use_dropbox"]):
+			conf["use_dropbox"] = status["use_dropbox"]
+			print("[INFO] upload status changed")
+		elif (conf["fps"] != status["fps"]):
+			conf["fps"] = status["fps"]
+			print("[INFO] fps status changed")
+		elif (conf["ISO"] != status["ISO"]):
+			conf["ISO"] = status["ISO"]
+			print("[INFO] ISO status changed")
+		elif (conf["brightness"] != status["brightness"]):
+			conf["brightness"] = status["brightness"]
+			print("[INFO] brightness status changed")
+		elif (conf["shutter_speed^-1"] != status["shutter_speed^-1"]):
+			conf["shutter_speed^-1"] = status["shutter_speed^-1"]
+			print("[INFO] shutter speed status changed")
 	'''
 	# clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
