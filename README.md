@@ -1,3 +1,40 @@
+# Motion detection camera
+
+## Content directory
+* [Program introduction](#Program Introduction)
+* [Technical Features](#Technical Features)
+* [User Guide](#User Guide)
+
+## Program introduction
+This program is based on OpenCV for home motion detection and monitoring. After detecting moving objects, take pictures and automatically upload the photos to personal file server or Dropbox
+
+## Technical Features
+Technologies used in this project:
+* By reading and writing json files, or keyboard input, preview and adjust photography parameters at runtime, adjust shutter, ISO, brightness and other photography parameters at runtime, and can be used as a simple SLR camera
+* The design algorithm automatically adapts to each resolution, and automatically adjusts the brightness by calculating the average light metering of the photo in real time to cope with the indoor light changes in the morning and evening
+* Quick start, timed start and other functions through Shell script
+* The outlines of moving objects in the real-time preview are marked in green, and you can view the outlines of moving objects in cloud photos
+
+## User Guide
+To use this program, you need to obtain the token of the Dropbox cloud disk and enter the corresponding location in conf.json
+
+The photo resolution setting is located in conf.json, the default is 1440*720, and other camera parameters are set to be auto by default
+
+Camera parameters can be modified through remote SSH at runtime
+
+**Instructions**:
+- P key to stop uploading photos to the cloud
+- R key to continue uploading photos to the cloud
+- B key + arrow keys to adjust brightness
+- I key + arrow keys to adjust exposure sensitivity
+- S key + arrow keys to adjust the shutter speed
+- F key + arrow keys to adjust the real-time monitoring frame rate
+- Q key to exit the program
+
+### Author: Zou Jiajun
+
+Thank you for your support!
+
 # 运动检测摄像
 
 ## 内容目录
